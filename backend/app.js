@@ -2,7 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const booksRoutes = require('./routes/books');
+const booksRoutes = require('./routes/book');
+const userRoutes = require ('./routes/user');
 
 mongoose.connect('mongodb+srv://MVGadministrator:6iZsT0RBJGyZwbbz@cluster0.hpsn9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
    { useNewUrlParser: true,
@@ -21,5 +22,6 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 app.use('/api/books', booksRoutes);
+app.use('/api/auth', userRoutes);
 
 module.exports = app;

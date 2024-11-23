@@ -1,7 +1,8 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const app = express();
 
+const booksRoutes = require('./routes/books');
 
 mongoose.connect('mongodb+srv://MVGadministrator:6iZsT0RBJGyZwbbz@cluster0.hpsn9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
    { useNewUrlParser: true,
@@ -9,7 +10,7 @@ mongoose.connect('mongodb+srv://MVGadministrator:6iZsT0RBJGyZwbbz@cluster0.hpsn9
    .then(() => console.log('Connexion à MongoDB réussie !'))
    .catch(() => console.log('Connexion à MongoDB échouée !'));
 
-app.use(express.json());
+const app = express();
 
 app.use((req, res, next) => {
    res.setHeader('Access-Control-Allow-Origin', '*');
@@ -18,38 +19,7 @@ app.use((req, res, next) => {
    next();
  });
 
- app.post('/api/stuff', (req, res, next) => {
-   console.log(req.body);
-   res.status(201).json({
-     message: 'Objet créé !'
-   });
- });
-
-
-app.get('/api/books', (req, res, next) => {
-   const books = [
-     {
-       _id: 'oeihfzeoi',
-       title: 'Milwaukee Mission',
-       author: 'Elder Cooper',
-       year: '2021',
-       genre:'Policier',
-       userRating:3,
-       imageurl:'',
-       userId: 'qsomihvqios',
-     },
-     {
-      _id: 'oeihfzeoisg',
-      title: 'Thinking fast & slow',
-      author: 'Daniel Kahneman',
-      year: '2022',
-      genre:'Economie',
-      userRating:3,
-      imageurl:'',
-      userId: 'qsofzhvqios',
-     },
-   ];
-   res.status(200).json(books);
- });
+app.use(bodyParser.json());
+app.use('/api/books', booksRoutes);
 
 module.exports = app;

@@ -14,12 +14,11 @@ const bookSchema = mongoose.Schema({
     }
   },
   genre: { type: String, required: true },
-  userRating: { 
-    type: Number, 
-    required: true,
-    min: [1, 'La note ne peut être inférieure à 1'],
-    max: [5, 'La note ne peut être supérieure à  5']
-  },
+  ratings: [{
+    userId: { type: String, required: true },
+    grade: { type: Number, required: true },
+  }],
+  averageRating: { type: Number, required: true },
   imageUrl: { type: String, required: true },
   userId: { type: String, required: true },
 });

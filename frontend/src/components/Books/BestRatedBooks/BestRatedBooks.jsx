@@ -8,7 +8,7 @@ function BestRatedBooks() {
 
   const bestRatedBooksContent = bestRatedBooks.length > 0 ? (
     bestRatedBooks.map((elt) => <BookItem key={`book-${elt.id}`} book={elt} size={3} />)
-  ) : <h3>Aucune recommendation</h3>;
+  ) : <h3>Aucune recommandation</h3>;
 
   return (
     <section className={`content-container ${styles.BestRatedBooks}`}>

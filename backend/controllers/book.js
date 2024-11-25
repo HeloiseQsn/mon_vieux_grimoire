@@ -76,49 +76,34 @@ exports.findAllBooks = (req, res, next) => {
 
 exports.updateRating = (req, res, next) => {
   const rating = req.body.rating;  // Extraction de la note depuis le corps de la requête
-  console.log("Received grade:", rating);
-  console.log("Request params:", req.params);
-  console.log("Authenticated user ID:", req.auth ? req.auth.userId : 'No user ID found');
 
   Book.findOne({ _id: req.params.id })  // Recherche du livre par ID
     .then(book => {
       if (!book) {
-        console.log("Book not found");
         return res.status(404).json({ error: 'Book not found' });  // Réponse d'erreur si le livre n'est pas trouvé
       }
-
-      console.log("Book found:", book);
 
       // Trouver l'évaluation existante de l'utilisateur, sinon ajouter une nouvelle évaluation
       const existingRating = book.ratings.find(r => r.userId === req.auth.userId);
       if (existingRating) {
-        console.log("Existing rating found:", existingRating);
         existingRating.grade = rating;  // Mise à jour de la note existante
       } else {
-        console.log("No existing rating found, adding new rating");
         book.ratings.push({ userId: req.auth.userId, grade : rating });  // Ajout d'une nouvelle note
       }
-
-      console.log("Updated ratings:", book.ratings);
 
       // Calculer la nouvelle moyenne des évaluations
       const totalRatings = book.ratings.reduce((acc, curr) => acc + curr.grade, 0);
       book.averageRating = book.ratings.length ? totalRatings / book.ratings.length : 0;  // Mise à jour de la note moyenne
 
-      console.log("New average rating:", book.averageRating);
-
       book.save()  // Sauvegarde du livre avec la nouvelle note
         .then(() => {
-          console.log("Book saved successfully");
-          res.status(200).json({ message: 'Grade updated!', id: book._id});  // Réponse de succès
+          res.status(200).json(book);  // Réponse de succès
         })
         .catch(error => {
-          console.log("Error saving book:", error);
           res.status(400).json({ error });  // Réponse d'erreur en cas d'échec
         });
     })
     .catch(error => {
-      console.log("Error finding book:", error);
       res.status(500).json({ error });  // Réponse d'erreur en cas d'échec de la recherche
     });
 };

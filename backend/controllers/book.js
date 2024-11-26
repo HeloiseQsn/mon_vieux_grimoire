@@ -2,33 +2,21 @@ const Book = require('../models/Book');
 const fs = require('fs');  //pour la suppression 
 
 exports.createBook = (req, res, next) => {
-  // Vérifie si req.body.book est défini
-  if (!req.body.book) {
-    return res.status(400).json({ error: 'Aucune donnée de livre envoyée.' });
-  }
-
-  // Vérifie si les données sont un JSON valide
-  let bookObject;
-  try {
-    bookObject = JSON.parse(req.body.book);  // Convertit les données JSON en objet JS
-  } catch (error) {
-    return res.status(400).json({ error: 'Le format JSON est invalide.' });
-  }
-
-  delete bookObject._id;  // Suppression ID créé par le client car nouvel ID créé par Mongo
-  delete bookObject._userId;  // Suppression de l'ID utilisateur, car il est récupéré automatiquement
+  const bookObject = JSON.parse(req.body.book);  //convertit données JSON transmises par le front en objet JS
+  
+  delete bookObject._id;  //suppression ID créé par le client car nouvel ID créé par Mongo automatiquement à l'enregistrement
+  delete bookObject._userId;  //IDEM car on récupère l'ID de l'utilisateur authentifié
   
   const book = new Book({
-    ...bookObject,  // Copie des propriétés de bookObject
-    userId: req.auth.userId,  // Ajout de l'ID utilisateur authentifié
-    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  // Construction de l'URL de l'image
+      ...bookObject,  // Copie des propriétés de bookObject
+      userId: req.auth.userId,  // Ajout de l'ID utilisateur authentifié
+      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  // Construction de l'URL de l'image
   });
 
   book.save()
-    .then(() => res.status(201).json({ message: 'Livre enregistré !' }))
-    .catch(error => res.status(400).json({ error }));
+  .then(() => { res.status(201).json({message: 'Livre enregistré !'})}) 
+  .catch(error => { res.status(400).json( { error })}); 
 };
-
 
 
 exports.modifyBook = (req, res, next) => {
@@ -57,22 +45,21 @@ exports.modifyBook = (req, res, next) => {
 exports.deleteBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id})  // Recherche du livre par ID
       .then(book => {
-          if (book.userId != req.auth.userId) {  //on vérifie que lJD du créateur du livre = ID de l'utilisateur authentifié
-              res.status(401).json({message: 'Not authorized'});  
-              
-              const filename = book.imageUrl.split('/images/')[1];  // On extrait le nom du fichier à partir de l'URL de l'image
+          if (book.userId != req.auth.userId) {  // Vérification de l'ID du créateur du livre
+              res.status(401).json({ message: 'Not authorized' });  
+          } else {
+              const filename = book.imageUrl.split('/images/')[1];  // Extraction du nom du fichier à partir de l'URL de l'image
               fs.unlink(`images/${filename}`, () => {  // Suppression du fichier image
-                  Book.deleteOne({_id: req.params.id})  // Suppression du livre de la base de données
-                      .then(() => { res.status(200).json({message: 'Livre supprimé !'})})  
+                  Book.deleteOne({ _id: req.params.id })  // Suppression du livre de la base de données
+                      .then(() => { res.status(200).json({ message: 'Livre supprimé !' }) })  
                       .catch(error => res.status(401).json({ error })); 
               });
           }
       })
-      .catch( error => {
+      .catch(error => {
           res.status(500).json({ error });
       });
 };
-
 
 exports.findOneBook = (req, res, next) => {
   Book.findOne({ _id: req.params.id })  // Recherche du livre par ID
@@ -100,7 +87,6 @@ exports.updateRating = (req, res, next) => {
         book.ratings.push({ userId: req.auth.userId, grade : rating });  
       }
 
-      // Mise à jour de la moyenne des notes
       const totalRatings = book.ratings.reduce((acc, curr) => acc + curr.grade, 0); //total des notes ajouté à la valeur initiale de 0
       book.averageRating = totalRatings / book.ratings.length;  // Mise à jour de la note moyenne
 

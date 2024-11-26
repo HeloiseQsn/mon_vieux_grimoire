@@ -2,21 +2,33 @@ const Book = require('../models/Book');
 const fs = require('fs');  //pour la suppression 
 
 exports.createBook = (req, res, next) => {
-  const bookObject = JSON.parse(req.body.book);  //convertit données JSON transmises par le front en objet JS
-  
-  delete bookObject._id;  //suppression ID créé par le client car nouvel ID créé par Mongo automatiquement à l'enregistrement
-  delete bookObject._userId;  //IDEM car on récupère l'ID de l'utilisateur authentifié
+  // Vérifie si req.body.book est défini
+  if (!req.body.book) {
+    return res.status(400).json({ error: 'Aucune donnée de livre envoyée.' });
+  }
+
+  // Vérifie si les données sont un JSON valide
+  let bookObject;
+  try {
+    bookObject = JSON.parse(req.body.book);  // Convertit les données JSON en objet JS
+  } catch (error) {
+    return res.status(400).json({ error: 'Le format JSON est invalide.' });
+  }
+
+  delete bookObject._id;  // Suppression ID créé par le client car nouvel ID créé par Mongo
+  delete bookObject._userId;  // Suppression de l'ID utilisateur, car il est récupéré automatiquement
   
   const book = new Book({
-      ...bookObject,  // Copie des propriétés de bookObject
-      userId: req.auth.userId,  // Ajout de l'ID utilisateur authentifié
-      imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  // Construction de l'URL de l'image
+    ...bookObject,  // Copie des propriétés de bookObject
+    userId: req.auth.userId,  // Ajout de l'ID utilisateur authentifié
+    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  // Construction de l'URL de l'image
   });
 
   book.save()
-  .then(() => { res.status(201).json({message: 'Livre enregistré !'})}) 
-  .catch(error => { res.status(400).json( { error })}); 
+    .then(() => res.status(201).json({ message: 'Livre enregistré !' }))
+    .catch(error => res.status(400).json({ error }));
 };
+
 
 
 exports.modifyBook = (req, res, next) => {

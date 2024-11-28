@@ -1,4 +1,4 @@
-const Book = require('../models/Book');  
+const Book = require('../models/book');  
 const fs = require('fs');  //pour la suppression 
 
 exports.createBook = (req, res, next) => {

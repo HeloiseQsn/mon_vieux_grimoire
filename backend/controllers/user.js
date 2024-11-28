@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt'); //hachage des mots de passe
 const jwt = require ('jsonwebtoken'); //génération de token
-const User = require('../models/User');
+const User = require('../models/user');
 
 
 exports.signup = (req, res, next) => {

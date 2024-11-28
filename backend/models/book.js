@@ -2,22 +2,24 @@ const mongoose = require('mongoose');
 
 const bookSchema = mongoose.Schema({
   title: { type: String, required: true },
-  author: { type: String, required: true }, 
-  year: { 
-    type: Number, 
+  author: { type: String, required: true },
+  year: {
+    type: Number,
     required: true,
     validate: {
-      validator: function(value) {
+      validator: function (value) {
         return /^\d{4}$/.test(value.toString());
       },
-      message: "L'année doit être une année valide"
-    }
+      message: "L'année doit être une année valide",
+    },
   },
   genre: { type: String, required: true },
-  ratings: [{
-    userId: { type: String, required: true },
-    grade: { type: Number, required: true },
-  }],
+  ratings: [
+    {
+      userId: { type: String, required: true },
+      grade: { type: Number, required: true },
+    },
+  ],
   averageRating: { type: Number, required: true },
   imageUrl: { type: String, required: true },
   userId: { type: String, required: true },

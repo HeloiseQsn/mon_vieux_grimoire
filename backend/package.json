@@ -20,5 +20,8 @@
     "shark": "^2.3.0",
     "sharp": "^0.33.5",
     "xss": "^1.0.15"
+  },
+  "devDependencies": {
+    "prettier": "^3.4.1"
   }
 }

@@ -1,23 +1,47 @@
-const multer = require('multer'); //pour le téléchargement des fichiers
+const multer = require('multer'); // pour le téléchargement des fichiers
+const sharp = require('sharp');
+const path = require('path');
+const fs = require('fs');
 
 const MIME_TYPES = {
   'image/jpg': 'jpg',
   'image/jpeg': 'jpg',
-  'image/png': 'png'
+  'image/png': 'png',
 };
 
-const storage = multer.diskStorage({ // Configuration de stockage des images
-  destination: (req, file, callback) => {
-    callback(null, 'images');  // Répertoire de stockage
-  },
-  // Génération nom unique pour chaque fichier
-  filename: (req, file, callback) => {
-    const name = file.originalname.split(' ').join('_');
-    const extension = MIME_TYPES[file.mimetype];
-    callback(null, name + Date.now() + '.' + extension);  // Nom unique => name+temps écoulé depuis le 1er janvier 1970 en ms + . + extension
-  }
-});
+const storage = multer.memoryStorage(); // Utilisation de la mémoire pour le stockage initial
 
+const upload = multer({ storage: storage }).single('image');
 
-module.exports = multer({storage: storage}).single('image');
+module.exports = (req, res, next) => {
+  upload(req, res, async (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message });
+    }
 
+    if (!req.file) {
+      return res.status(400).json({ error: 'Aucun fichier image fourni.' });
+    }
+
+    try {
+      const name = req.file.originalname.split(' ').join('_');
+      const extension = MIME_TYPES[req.file.mimetype];
+      const filename = `${name}${Date.now()}.${extension}`;
+
+      // Chemin pour sauvegarder l'image redimensionnée
+      const outputPath = path.join(__dirname, '..', 'images', filename);
+
+      // Redimensionnement de l'image avec Sharp
+      await sharp(req.file.buffer)
+        .resize(800, 600) // Redimensionne l'image à 800x600
+        .toFile(outputPath);
+
+      // Ajout du chemin de l'image redimensionnée à la requête pour l'utiliser dans le contrôleur
+      req.file.filename = filename;
+
+      next();
+    } catch (error) {
+      return res.status(500).json({ error: error.message });
+    }
+  });
+};

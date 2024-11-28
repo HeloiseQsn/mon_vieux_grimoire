@@ -17,7 +17,16 @@ const bookSchema = mongoose.Schema({
   ratings: [
     {
       userId: { type: String, required: true },
-      grade: { type: Number, required: true },
+      grade: {
+        type: Number,
+        required: true,
+        validate: {
+          validator: function (value) {
+            return value >= 1;
+          },
+          message: 'Le grade doit être au moins égal à 1',
+        },
+      },
     },
   ],
   averageRating: { type: Number, required: true },

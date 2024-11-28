@@ -2,22 +2,42 @@ const Book = require('../models/Book');
 const fs = require('fs');  //pour la suppression 
 
 exports.createBook = (req, res, next) => {
-  const bookObject = JSON.parse(req.body.book);  //convertit données JSON transmises par le front en objet JS
-  
-  delete bookObject._id;  //suppression ID créé par le client car nouvel ID créé par Mongo automatiquement à l'enregistrement
-  delete bookObject._userId;  //IDEM car on récupère l'ID de l'utilisateur authentifié
-  
-  const book = new Book({
-      ...bookObject,  // Copie des propriétés de bookObject
-      userId: req.auth.userId,  // Ajout de l'ID utilisateur authentifié
+  try {
+    const bookObject = JSON.parse(req.body.book);  // Convertit les données JSON en objet JS
+
+    delete bookObject._id;  // Supprime l'ID client
+    delete bookObject._userId;  // Supprime l'ID utilisateur client
+
+    // Validation de la présence d'un fichier image
+    if (!req.file) {
+      return res.status(400).json({ error: "Aucun fichier image fourni." });
+    }
+
+
+    const book = new Book({
+      ...bookObject,  // Copie des propriétés
+      userId: req.auth.userId,  // Ajoute l'ID utilisateur authentifié
       imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`  // Construction de l'URL de l'image
-  });
+    });
 
-  book.save()
-  .then(() => { res.status(201).json({message: 'Livre enregistré !'})}) 
-  .catch(error => { res.status(400).json( { error })}); 
+    book.save()
+    .then(() => { 
+      res.status(201).json({ message: 'Livre enregistré !' });
+    })
+    .catch(error => {
+      console.error("Erreur lors de la sauvegarde dans MongoDB:", error);
+      if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: 'Erreur de validation des données.' });
+      }
+      res.status(500).json({ error: 'Erreur interne du serveur.' });
+    });
+
+  } catch (error) {
+    // Capture d'erreurs liées au parsing du JSON, ou à la logique du code
+    console.error("Erreur dans le middleware:", error);
+    res.status(400).json({ error: error.message || 'Erreur dans la requête.' });
+  }
 };
-
 
 exports.modifyBook = (req, res, next) => {
   const bookObject = req.file ? { //si fichier envoyé, on convertit les données JSON en objet JS + on crée l'URL de la nouvelle image
@@ -88,7 +108,7 @@ exports.updateRating = (req, res, next) => {
       }
 
       const totalRatings = book.ratings.reduce((acc, curr) => acc + curr.grade, 0); //total des notes ajouté à la valeur initiale de 0
-      book.averageRating = totalRatings / book.ratings.length;  // Mise à jour de la note moyenne
+      book.averageRating = (totalRatings / book.ratings.length).toFixed(2);  // Mise à jour de la note moyenne
 
       book.save()  // Sauvegarde du livre avec la nouvelle note
         .then(() => {

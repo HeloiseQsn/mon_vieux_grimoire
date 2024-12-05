@@ -26,7 +26,17 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:', 'http://localhost:4000/images/'],
+      },
+    },
+    crossOriginResourcePolicy: false, // Désactive la politique CORP
+  })
+);
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');

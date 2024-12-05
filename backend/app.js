@@ -19,8 +19,8 @@ mongoose
 const app = express();
 
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+  windowMs: 15 * 60 * 60 * 1000,
+  max: 200,
   message: 'Trop de requêtes, veuillez réessayer plus tard.',
 });
 

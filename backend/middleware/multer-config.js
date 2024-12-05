@@ -33,7 +33,7 @@ module.exports = (req, res, next) => {
 
       // Redimensionnement de l'image avec Sharp
       await sharp(req.file.buffer)
-        .resize(800, 600) // Redimensionne l'image à 800x600
+        .resize(800, null) // Redimensionne l'image à 800 en largeur
         .toFile(outputPath);
 
       // Ajout du chemin de l'image redimensionnée à la requête pour l'utiliser dans le contrôleur
